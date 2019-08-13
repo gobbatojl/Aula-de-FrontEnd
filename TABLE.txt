@@ -1,0 +1,161 @@
+CREATE TABLE estado(
+	id   INTEGER     NOT NULL PRIMARY KEY AUTOINCREMENT,
+	uf   VARCHAR(2)  NOT NULL,
+	nome VARCHAR(50) NOT NULL
+)
+
+CREATE TABLE cidade(
+	id        INTEGER     NOT NULL PRIMARY KEY AUTOINCREMENT,
+	estado_id INTEGER     NOT NULL,
+	nome 	  VARCHAR(50) NOT NULL,
+	FOREIGN KEY (estado_id) REFERENCES estado(id)
+)
+
+CREATE TABLE endereco(
+	id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	cidade_id   INTEGER NOT NULL,
+	lograduoro  VARCHAR(50),
+	numero      VARCHAR(50),
+	complemento VARCHAR(50),
+	cep         VARCHAR(50),
+	FOREIGN KEY (cidade_id) REFERENCES cidade (id)
+)
+
+CREATE TABLE pessoa(
+	id   INTEGER    NOT NULL PRIMARY KEY AUTOINCREMENT,
+	nome VACHAR(50) NOT NULL,
+	cpf  VACHAR(12) NOT NULL,
+)
+
+CREATE TABLE pessoa_endereco(
+	id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	pessoa_id   INTEGER NOT NULL,
+	endereco_id INTEGER NOT NULL,
+	FOREIGN KEY (pessoa_id)   REFERENCES pessoa(id),
+	FOREIGN KEY (endereco_id) REFERENCES endereco(id)
+)
+
+CREATE TABLE usuario(
+	id INTEGER            NOT NULL PRIMARY KEY AUTOINCREMENT,
+	pessoa_id INTEGER     NOT NULL,
+	login     VARCHAR(20) NOT NULL,
+	senha     VARCHAR(20) NOT NULL,
+	papel     VARCHAR(20) NOT NULL,
+	FOREIGN KEY (pessoa_id) REFERENCES pessoa(id)
+)
+
+CREATE TABLE recibo(
+	id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	cidade_id   INTEGER NOT NULL,
+	pessoa_id   INTEGER NOT NULL,
+	descricao   VAECHAR(255),
+	data_recibo DATE    NOT NULL,
+	valor       DOUBLE  NOT NULL,
+	emissor	    VAECHAR,
+	FOREIGN KEY (cidade_id) REFERENCES cidade(id),
+	FOREIGN KEY (pessoa_id) REFERENCES pessoa(id)
+)
+
+
+EXERCIOS
+
+
+03-	delete
+  	from estado
+ 	where not exists (select * from cidade where cidade.estado_id = estado.id);
+
+	delete from estado where id != (select id_estado from cidade) 
+
+	insert into estado (id,uf,nome) values ('1','SP','São Paulo'), ('25','SC', 'Santa Catarina'), ('17', 'PR', 'Paraná')
+
+
+04-	insert into cidade (estado_id,nome) values ('1', 'Franca'), ('1', 'Santos'), ('1', 'Maríla')
+
+
+05-	update cidade set nome = 'Lunardelli' where nome like 'Lunardeli'
+
+	update cidade set nome = 'Jandaia' where nome like 'Jandaia do Sul'
+
+	update cidade set nome = 'Cidade Canção' where nome like 'Maringá'
+
+
+06-	SELECT cid.nome, uf.uf 
+	FROM cidade cid, estado uf
+	WHERE uf.id = cid.estado_id
+	ORDER BY uf.uf, cid.nome
+
+
+07-	SELECT  COUNT (*) as QT, 
+		es.uf as UF,
+        	es.nome as NOME
+	FROM cidade cid, estado es
+	WHERE es.id = cid.estado_id 
+	GROUP BY cid.estado_id
+
+08-	ALTER TABLE endereco ADD tipo VARCHAR(20)
+
+
+09-	INSERT INTO pessoa(nome,cpf) values 
+			('Jose', '1234566'),
+			('Maira', '000000'),
+			('Zeca', '000.000.000-00')
+
+	INSERT INTO endereco(cidade_id) values ('7'), ('10'), ('12')
+	
+	INSERT INTO pessoa_endereco(pessoa_id, endereco_id) values ('1','1'), ('1', '6'), ('2', '4'), ('2','2'), ('3', '3'), ('3','5')
+
+
+10-	INSERT INTO pessoa(nome,cpf) values 
+			('Pedro', '123.456.600-00'),
+			('Alberto', '000.000.123-45')
+
+	INSERT INTO endereco(cidade_id, tipo) values ('16','comercial'), ('14','residencial'), ('15', 'comercial'), ('16', 'residencial')
+
+	INSERT INTO pessoa_endereco(pessoa_id, endereco_id) values ('4','7'), ('4', '8'), ('5', '9'), ('5','19')
+
+11-	INSERT INTO pessoa(nome,cpf) values 
+			('Fusca', '123.456.600-00'),
+			('Tamara', '000.000.123-00')
+
+	INSERT INTO endereco(cidade_id, tipo) values ('25','comercial'), ('25','comercial')
+
+	INSERT INTO pessoa_endereco(pessoa_id, endereco_id) values ('6','11'), ('7', '12')
+
+12-	SELECT pes.nome AS cliente,
+	       cid.nome AS cidade,
+	       uf.uf AS UF
+	FROM pessoa pes, cidade cid, estado uf, pessoa_endereco pes_end, endereco end
+	WHERE cid.estado_id = uf.id
+	  AND end.cidade_id = cid.id
+	  AND pes_end.pessoa_id = pes.id
+	  AND pes_end.endereco_id = end.id
+	  AND end.tipo = 'comercial'
+
+
+15-	INSERT INTO recibo(cidade_id, pessoa_id, data_recibo, valor) values 
+						('7', '1','20/06/2001','34.59'),
+						('10','2','15/04/2009', '450.59')
+
+
+16-	INSERT INTO recibo(cidade_id, pessoa_id, data_recibo, valor) values 
+						('14', '4','2000/06/20', '45.00'),
+						('16','5','2015/04/09', '67.99')
+
+
+17-	select rec.id as recibo,
+	   rec.data_recibo,
+       rec.valor,
+       cli.nome as cliente,
+       rec.emissor,
+       uf_cli.nome as cliente_estado
+  from recibo rec, pessoa cli, pessoa_endereco pend_cli, endereco end_cli, cidade cid_cli, estado uf_cli
+ where cli.id = rec.pessoa_id 
+   and pend_cli.pessoa_id = cli.id
+   and pend_cli.endereco_id = end_cli.id
+   and cid_cli.id = end_cli.cidade_id 
+   and uf_cli.id = cid_cli.estado_id
+   and end_cli.tipo = 'residencial'
+
+
+
+
